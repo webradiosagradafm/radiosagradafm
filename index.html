@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rádio Sagrada FM - Ao Vivo</title>
+  <title>Praise FM - Brasil — Ao Vivo</title>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2E0Q2CR28"></script>
@@ -18,7 +18,7 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(180deg, #444 0%, #222 100%);
+      background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -31,10 +31,10 @@
     }
 
     .player-container {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
       width: 90%;
       max-width: 400px;
       backdrop-filter: blur(10px);
@@ -45,6 +45,7 @@
       margin-bottom: 15px;
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+      letter-spacing: 1px;
     }
 
     img#cover {
@@ -54,7 +55,7 @@
       object-fit: contain;
       margin: 15px auto;
       box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
-      background: rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.2);
       padding: 10px;
     }
 
@@ -92,9 +93,10 @@
 </head>
 <body>
   <div class="player-container">
-    <h1>Sagrada FM</h1>
-    <!-- Logo da Sagrada FM como base64 (substitua se quiser imagem real) -->
-    <img id="cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23333' rx='12'/%3E%3Ctext x='90' y='95' font-family='Poppins' font-size='20' fill='white' text-anchor='middle' dominant-baseline='middle'%3Esagrada fm%3C/text%3E%3C/svg%3E" alt="Logo Sagrada FM">
+    <h1>Praise FM - Brasil</h1>
+    
+    <!-- Logo Praise FM Brasil (base64 SVG) -->
+    <img id="cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23000' rx='12'/%3E%3Ctext x='90' y='80' font-family='Poppins' font-weight='700' font-size='28' fill='%2300ff9d' text-anchor='middle' dominant-baseline='middle'%3EPRAISE FM%3C/text%3E%3Ctext x='90' y='110' font-family='Poppins' font-size='16' fill='%2300ccff' text-anchor='middle' dominant-baseline='middle'%3EBRASIL%3C/text%3E%3C/svg%3E" alt="Logo Praise FM Brasil">
 
     <div class="info">
       <p><strong>Música:</strong> <span id="track" class="loading">Carregando...</span></p>
@@ -109,7 +111,7 @@
     <div id="errorMsg" class="error"></div>
   </div>
 
-  <footer>© Sagrada FM — A Global Worship Network</footer>
+  <footer>© Praise FM - Brasil  </footer>
 
   <script>
     const player = document.getElementById('radioPlayer');
@@ -117,12 +119,12 @@
 
     // Configurações da API Last.fm
     const API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
-    const RADIO_NAME = 'Radio Sagrada FM'; // Nome exato na Last.fm
+    const RADIO_NAME = 'radiosagradafm'; // Nome exato na Last.fm (ajuste se necessário)
 
     // Função para buscar a música atual no Last.fm
     async function fetchNowPlaying() {
       try {
-        const url = `https://ws.audioscrobbler.com/2.0/?method=radio.getrecenttracks&station=${encodeURIComponent(RADIO_NAME)}&api_key=${API_KEY}&format=json`;
+        const url = `https://ws.audioscrobbler.com/2.0/?method=radio.getrecenttracks&station=${encodeURIComponent(radiosagradafm)}&api_key=${3ce134e4f02accfff4367ada927e6dcd}&format=json`;
 
         const response = await fetch(url);
         if (!response.ok) throw new Error('Falha ao carregar dados da Last.fm');
@@ -147,13 +149,18 @@
             }
           }
         } else {
-          document.getElementById('artist').textContent = 'Aguardando transmissão...';
-          document.getElementById('track').textContent = 'Música em breve';
+          document.getElementById('artist').textContent = 'Tocando agora...';
+          document.getElementById('track').textContent = 'Música sagrada';
           document.getElementById('album').textContent = '';
         }
       } catch (error) {
         console.warn('Erro ao buscar música no Last.fm:', error);
-        errorMsg.textContent = 'Não foi possível carregar informações da música.';
+        errorMsg.textContent = 'música não disponíveis.';
+        
+        // Fallback visual
+        document.getElementById('artist').textContent = 'Praise FM - Brasil';
+        document.getElementById('track').textContent = 'Ao vivo';
+        document.getElementById('album').textContent = '';
       }
     }
 
@@ -161,7 +168,7 @@
     player.addEventListener('play', () => {
       gtag('event', 'play', {
         event_category: 'Streaming',
-        event_label: 'Sagrada FM'
+        event_label: 'Praise FM - Brasil'
       });
     });
 
