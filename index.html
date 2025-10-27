@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Rádio Sagrada FM - Ao Vivo</title>
 
-  <!-- Google Analytics (substitua G-SEU_CODIGO pelo seu ID real) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-SEU_CODIGO"></script>
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2E0Q2CR28"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-SEU_CODIGO');
+    gtag('config', 'G-D2E0Q2CR28');
   </script>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -28,7 +28,6 @@
       margin: 0;
       text-align: center;
       padding: 20px;
-      background-image: url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23888'/%3E%3Cstop offset='100%25' stop-color='%23222'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)'/%3E%3C/svg%3E");
     }
 
     .player-container {
@@ -94,7 +93,8 @@
 <body>
   <div class="player-container">
     <h1>Sagrada FM</h1>
-    <img id="cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Ctext x='50%25' y='50%25' font-family='Poppins' font-size='18' fill='white' text-anchor='middle' dominant-baseline='middle'%3Esagrada fm%3C/text%3E%3C/svg%3E" alt="Logo Sagrada FM">
+    <!-- Logo da Sagrada FM como base64 (substitua se quiser imagem real) -->
+    <img id="cover" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' fill='%23333' rx='12'/%3E%3Ctext x='90' y='95' font-family='Poppins' font-size='20' fill='white' text-anchor='middle' dominant-baseline='middle'%3Esagrada fm%3C/text%3E%3C/svg%3E" alt="Logo Sagrada FM">
 
     <div class="info">
       <p><strong>Música:</strong> <span id="track" class="loading">Carregando...</span></p>
@@ -103,7 +103,7 @@
     </div>
 
     <audio id="radioPlayer" controls autoplay>
-      <source src="https://sua-radiosagrada.stream/xxx" type="audio/mpeg">
+      <source src="https://stream.zeno.fm/marglwedbnltv" type="audio/mpeg">
       Seu navegador não suporta áudio.
     </audio>
     <div id="errorMsg" class="error"></div>
@@ -117,7 +117,6 @@
 
     // Configurações da API Last.fm
     const API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
-    const SHARED_SECRET = '37cb49631ae1e41eb79e112cdde8cb88';
     const RADIO_NAME = 'Radio Sagrada FM'; // Nome exato na Last.fm
 
     // Função para buscar a música atual no Last.fm
@@ -131,7 +130,7 @@
         const data = await response.json();
 
         if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length > 0) {
-          const track = data.recenttracks.track[0]; // Última música tocada
+          const track = data.recenttracks.track[0];
           const artistName = track.artist['#text'] || 'Desconhecido';
           const trackName = track.name || 'Desconhecido';
           const albumName = track.album['#text'] || 'Desconhecido';
@@ -158,17 +157,15 @@
       }
     }
 
-    // Tenta tocar o áudio (autoplay pode ser bloqueado)
+    // Evento de play para o Google Analytics
     player.addEventListener('play', () => {
-      if (typeof gtag === 'function') {
-        gtag('event', 'play', {
-          event_category: 'Streaming',
-          event_label: 'Sagrada FM'
-        });
-      }
+      gtag('event', 'play', {
+        event_category: 'Streaming',
+        event_label: 'Sagrada FM'
+      });
     });
 
-    // Inicia a reprodução automaticamente (se permitido)
+    // Tenta reproduzir automaticamente
     player.play().catch(e => {
       console.log("Autoplay bloqueado — aguardando interação do usuário.");
       errorMsg.textContent = 'Clique no botão "Play" para ouvir a rádio.';
