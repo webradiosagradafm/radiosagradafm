@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Praise FM - Brasil — Ao Vivo</title>
+  <title>Praise FM - Brasil • Ao Vivo</title>
 
   <!-- Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2E0Q2CR28"></script>
@@ -111,7 +111,7 @@
     <div id="errorMsg" class="error"></div>
   </div>
 
-  <footer>© Praise FM - Brasil  </footer>
+  <footer>© Praise FM - Brasil</footer>
 
   <script>
     const player = document.getElementById('radioPlayer');
@@ -119,35 +119,24 @@
 
     // Configurações da API Last.fm
     const API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
-    const RADIO_NAME = 'radiosagradafm'; // Nome exato na Last.fm (ajuste se necessário)
+    const RADIO_NAME = 'radiosagradafm'; // Ajuste conforme cadastrado no Last.fm
 
-    // Função para buscar a música atual no Last.fm
     async function fetchNowPlaying() {
       try {
-        const url = `https://ws.audioscrobbler.com/2.0/?method=radio.getrecenttracks&station=${encodeURIComponent(radiosagradafm)}&api_key=${3ce134e4f02accfff4367ada927e6dcd}&format=json`;
-
+        const url = `https://ws.audioscrobbler.com/2.0/?method=radio.getrecenttracks&station=${encodeURIComponent(RADIO_NAME)}&api_key=${API_KEY}&format=json`;
         const response = await fetch(url);
         if (!response.ok) throw new Error('Falha ao carregar dados da Last.fm');
 
         const data = await response.json();
-
-        if (data.recenttracks && data.recenttracks.track && data.recenttracks.track.length > 0) {
+        if (data.recenttracks?.track?.length > 0) {
           const track = data.recenttracks.track[0];
-          const artistName = track.artist['#text'] || 'Desconhecido';
-          const trackName = track.name || 'Desconhecido';
-          const albumName = track.album['#text'] || 'Desconhecido';
+          document.getElementById('artist').textContent = track.artist['#text'] || 'Desconhecido';
+          document.getElementById('track').textContent = track.name || 'Desconhecido';
+          document.getElementById('album').textContent = track.album['#text'] || 'Desconhecido';
 
-          document.getElementById('artist').textContent = artistName;
-          document.getElementById('track').textContent = trackName;
-          document.getElementById('album').textContent = albumName;
-
-          // Tenta buscar capa do álbum
-          if (track.image && track.image.length > 0) {
-            const imageUrl = track.image.find(img => img.size === 'large')?.['#text'];
-            if (imageUrl) {
-              document.getElementById('cover').src = imageUrl;
-            }
-          }
+          // Capa do álbum
+          const imageUrl = track.image?.find(img => img.size === 'large')?.['#text'];
+          if (imageUrl) document.getElementById('cover').src = imageUrl;
         } else {
           document.getElementById('artist').textContent = 'Tocando agora...';
           document.getElementById('track').textContent = 'Música sagrada';
@@ -155,16 +144,13 @@
         }
       } catch (error) {
         console.warn('Erro ao buscar música no Last.fm:', error);
-        errorMsg.textContent = 'música não disponíveis.';
-        
-        // Fallback visual
+        errorMsg.textContent = 'Informações da música não disponíveis.';
         document.getElementById('artist').textContent = 'Praise FM - Brasil';
         document.getElementById('track').textContent = 'Ao vivo';
         document.getElementById('album').textContent = '';
       }
     }
 
-    // Evento de play para o Google Analytics
     player.addEventListener('play', () => {
       gtag('event', 'play', {
         event_category: 'Streaming',
@@ -172,13 +158,11 @@
       });
     });
 
-    // Tenta reproduzir automaticamente
     player.play().catch(e => {
       console.log("Autoplay bloqueado — aguardando interação do usuário.");
       errorMsg.textContent = 'Clique no botão "Play" para ouvir a rádio.';
     });
 
-    // Atualiza a cada 30 segundos
     fetchNowPlaying();
     setInterval(fetchNowPlaying, 30000);
   </script>
