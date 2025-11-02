@@ -35,16 +35,14 @@
     .cover-image {
       width: 100%;
       height: 300px;
-      object-fit: cover;
       background: #111;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-size: 1.1rem;
-      text-align: center;
       padding: 20px;
+      text-align: center;
     }
     .cover-image img {
       width: 100%;
@@ -59,7 +57,6 @@
       position: relative;
       z-index: 2;
       padding: 20px;
-      text-align: center;
       max-width: 90%;
       word-wrap: break-word;
       line-height: 1.4;
@@ -236,7 +233,7 @@
     <div class="cover-image" id="coverContainer">
       <img id="cover" src="" alt="Capa da música" style="display:none;">
       <div class="cover-fallback" id="fallbackText">
-        <div class="song-title-fallback">Carregando...</div>
+        <div class="song-title-fallback">Clique no botão ▶️ para ouvir</div>
         <div class="artist-name-fallback">Praise FM Brasil</div>
       </div>
       <div class="overlay">
@@ -275,7 +272,7 @@
   </div>
 
   <audio id="radioPlayer" preload="none">
-    <source src="https://stream.zeno.fm/marglwedbnltv" type="audio/mpeg">
+    <source src="https://stream.zeno.fm/olisuxy9v3vtv" type="audio/mpeg">
   </audio>
 
   <script>
@@ -290,13 +287,11 @@
     const listenersEl = document.getElementById('listeners');
 
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
-    const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/marglwedbnltv';
-    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/marglwedbnltv';
+    const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv';
+    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/olisuxy9v3vtv';
 
     let currentTrackKey = '';
     const MAX_HISTORY = 10;
-
-    // Histórico em memória
     let history = [];
 
     function addToHistory(song, artist, coverUrl = '') {
@@ -358,21 +353,17 @@
       }
     }
 
-    // Controle de volume
     volumeSlider.addEventListener('input', () => {
       player.volume = volumeSlider.value;
     });
 
-    // Inicializa
     player.volume = 0.7;
     updatePlayPauseIcon();
 
-    // Eventos
     playPauseBtn.addEventListener('click', togglePlayback);
     player.addEventListener('play', updatePlayPauseIcon);
     player.addEventListener('pause', updatePlayPauseIcon);
 
-    // Metadados
     function setupNowPlaying() {
       const eventSource = new EventSource(NOWPLAYING_API);
       eventSource.onmessage = (event) => {
@@ -383,7 +374,6 @@
           const artist = parts[0] || 'Praise FM Radio';
           const song = parts.length > 1 ? parts.slice(1).join(' - ') : streamTitle;
 
-          // Atualiza texto sempre
           artistEl.textContent = artist;
           songEl.textContent = song;
           fallbackText.querySelector('.song-title-fallback').textContent = song;
@@ -409,7 +399,6 @@
                 }
               })
               .catch(() => {
-                // Falha na imagem — mostra fallback
                 coverImg.style.display = 'none';
                 fallbackText.style.display = 'block';
                 addToHistory(song, artist, '');
@@ -421,7 +410,6 @@
           }
         } catch (err) {
           console.warn('Erro nos metadados:', err);
-          // Sempre mantém o texto
           artistEl.textContent = 'Praise FM Radio';
           songEl.textContent = 'Streaming Live';
           fallbackText.querySelector('.song-title-fallback').textContent = 'Streaming Live';
@@ -433,7 +421,7 @@
       eventSource.onerror = () => setTimeout(setupNowPlaying, 15000);
     }
 
-    // Ouvintes reais
+    // Busca ouvintes a cada 30s
     function fetchListeners() {
       fetch(STATION_INFO_API)
         .then(res => res.json())
@@ -450,7 +438,7 @@
         });
     }
 
-    // Inicia tudo
+    // Inicia
     fetchListeners();
     setInterval(fetchListeners, 30000);
     setupNowPlaying();
