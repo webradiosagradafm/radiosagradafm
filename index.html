@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+html_clean = """<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -21,11 +23,6 @@
       padding: 20px; text-align: center; }
     .cover-image img { width: 100%; height: 100%; object-fit: cover; position: absolute;
       top: 0; left: 0; z-index: 1; }
-    .cover-fallback { position: relative; z-index: 2; padding: 20px; max-width: 90%;
-      word-wrap: break-word; line-height: 1.4; }
-    .song-title-fallback { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px;
-      letter-spacing: 0.5px; }
-    .artist-name-fallback { font-size: 1rem; opacity: 0.8; }
     .overlay { position: absolute; bottom: 0; left: 0; right: 0;
       background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
       padding: 20px; display: flex; align-items: center; gap: 15px; z-index: 3; }
@@ -64,10 +61,6 @@
   <div class="player-wrapper">
     <div class="cover-image" id="coverContainer">
       <img id="cover" src="" alt="Capa da música" style="display:none;">
-      <div class="cover-fallback" id="fallbackText">
-        <div class="song-title-fallback">Clique no botão ▶️ para ouvir</div>
-        <div class="artist-name-fallback">Praise FM Brasil</div>
-      </div>
       <div class="overlay">
         <div class="play-btn" id="playPauseBtn"><i class="fas fa-play"></i></div>
         <div class="song-info">
@@ -109,7 +102,6 @@
     const playPauseBtn = document.getElementById('playPauseBtn');
     const volumeSlider = document.getElementById('volumeSlider');
     const coverImg = document.getElementById('cover');
-    const fallbackText = document.getElementById('fallbackText');
     const statusText = document.getElementById('statusText');
     const listenersEl = document.getElementById('listeners');
     const songTitleEl = document.getElementById('songTitle');
@@ -213,14 +205,11 @@
                   if (cover['#text']) {
                     coverImg.src = cover['#text'];
                     coverImg.style.display = 'block';
-                    fallbackText.style.display = 'none';
                   } else {
                     coverImg.style.display = 'none';
-                    fallbackText.style.display = 'block';
                   }
                 } else {
                   coverImg.style.display = 'none';
-                  fallbackText.style.display = 'block';
                 }
                 addToHistory(song, artist, coverImg.src || '');
               })
@@ -236,3 +225,8 @@
   </script>
 </body>
 </html>
+"""
+
+output_path = Path("/mnt/data/index.html")
+output_path.write_text(html_clean, encoding="utf-8")
+output_path
