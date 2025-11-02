@@ -38,6 +38,41 @@
       object-fit: cover;
       background: #111;
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 20px;
+    }
+    .cover-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .cover-fallback {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      text-align: center;
+      max-width: 90%;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+    .song-title-fallback {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .artist-name-fallback {
+      font-size: 1rem;
+      opacity: 0.8;
     }
     .overlay {
       position: absolute;
@@ -49,6 +84,7 @@
       display: flex;
       align-items: center;
       gap: 15px;
+      z-index: 3;
     }
     .play-btn {
       background: white;
@@ -198,7 +234,11 @@
   <div class="player-wrapper">
 
     <div class="cover-image" id="coverContainer">
-      <img id="cover" src="https://via.placeholder.com/350x300?text=PRAISE+FM+BRASIL" alt="Capa da música" style="width:100%;height:100%;object-fit:cover;">
+      <img id="cover" src="" alt="Capa da música" style="display:none;">
+      <div class="cover-fallback" id="fallbackText">
+        <div class="song-title-fallback">Carregando...</div>
+        <div class="artist-name-fallback">Praise FM Brasil</div>
+      </div>
       <div class="overlay">
         <div class="play-btn" id="playPauseBtn">
           <i class="fas fa-play"></i>
@@ -245,17 +285,18 @@
     const songEl = document.getElementById('song');
     const artistEl = document.getElementById('artist');
     const coverImg = document.getElementById('cover');
+    const fallbackText = document.getElementById('fallbackText');
     const statusText = document.getElementById('statusText');
     const listenersEl = document.getElementById('listeners');
 
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
     const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/marglwedbnltv';
-    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/marglwedbnltv'; // URL CORRETA PARA OUVINTES
+    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/marglwedbnltv';
 
     let currentTrackKey = '';
     const MAX_HISTORY = 10;
 
-    // Histórico em memória (sem localStorage)
+    // Histórico em memória
     let history = [];
 
     function addToHistory(song, artist, coverUrl = '') {
@@ -308,7 +349,6 @@
           updatePlayPauseIcon();
         }).catch(err => {
           console.warn('Falha ao reproduzir:', err);
-          // Em celulares, apenas permite tentar novamente
         });
       } else {
         player.pause();
@@ -343,8 +383,11 @@
           const artist = parts[0] || 'Praise FM Radio';
           const song = parts.length > 1 ? parts.slice(1).join(' - ') : streamTitle;
 
+          // Atualiza texto sempre
           artistEl.textContent = artist;
           songEl.textContent = song;
+          fallbackText.querySelector('.song-title-fallback').textContent = song;
+          fallbackText.querySelector('.artist-name-fallback').textContent = artist;
 
           let coverUrl = '';
           if (artist !== 'Praise FM Radio' && song !== 'Streaming Live') {
@@ -359,19 +402,32 @@
                   if (cover['#text']) {
                     coverUrl = cover['#text'];
                     coverImg.src = coverUrl;
+                    coverImg.style.display = 'block';
+                    fallbackText.style.display = 'none';
                     addToHistory(song, artist, coverUrl);
                   }
                 }
               })
               .catch(() => {
+                // Falha na imagem — mostra fallback
+                coverImg.style.display = 'none';
+                fallbackText.style.display = 'block';
                 addToHistory(song, artist, '');
               });
           } else {
-            coverImg.src = "https://via.placeholder.com/350x300?text=PRAISE+FM+BRASIL";
+            coverImg.style.display = 'none';
+            fallbackText.style.display = 'block';
             addToHistory(song, artist, '');
           }
         } catch (err) {
           console.warn('Erro nos metadados:', err);
+          // Sempre mantém o texto
+          artistEl.textContent = 'Praise FM Radio';
+          songEl.textContent = 'Streaming Live';
+          fallbackText.querySelector('.song-title-fallback').textContent = 'Streaming Live';
+          fallbackText.querySelector('.artist-name-fallback').textContent = 'Praise FM Radio';
+          coverImg.style.display = 'none';
+          fallbackText.style.display = 'block';
         }
       };
       eventSource.onerror = () => setTimeout(setupNowPlaying, 15000);
