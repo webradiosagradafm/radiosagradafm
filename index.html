@@ -240,10 +240,7 @@
         <div class="play-btn" id="playPauseBtn">
           <i class="fas fa-play"></i>
         </div>
-        <div class="song-info">
-          <div class="song-title" id="song">Clique no botão ▶️ para ouvir</div>
-          <div class="artist-name" id="artist">Praise FM Brasil</div>
-        </div>
+        <!-- REMOVIDO: Não mostramos título/artista aqui -->
       </div>
       <div class="status" id="statusText">AO VIVO</div>
     </div>
@@ -280,8 +277,8 @@
     const player = document.getElementById('radioPlayer');
     const playPauseBtn = document.getElementById('playPauseBtn');
     const volumeSlider = document.getElementById('volumeSlider');
-    const songEl = document.getElementById('song');
-    const artistEl = document.getElementById('artist');
+    const songEl = document.getElementById('song'); // Não usaremos mais
+    const artistEl = document.getElementById('artist'); // Não usaremos mais
     const coverImg = document.getElementById('cover');
     const fallbackText = document.getElementById('fallbackText');
     const statusText = document.getElementById('statusText');
@@ -375,8 +372,7 @@
           const artist = parts[0] || 'Praise FM Radio';
           const song = parts.length > 1 ? parts.slice(1).join(' - ') : streamTitle;
 
-          artistEl.textContent = artist;
-          songEl.textContent = song;
+          // Atualiza apenas o fallback e a capa
           fallbackText.querySelector('.song-title-fallback').textContent = song;
           fallbackText.querySelector('.artist-name-fallback').textContent = artist;
 
@@ -411,8 +407,6 @@
           }
         } catch (err) {
           console.warn('Erro nos metadados:', err);
-          artistEl.textContent = 'Praise FM Radio';
-          songEl.textContent = 'Streaming Live';
           fallbackText.querySelector('.song-title-fallback').textContent = 'Streaming Live';
           fallbackText.querySelector('.artist-name-fallback').textContent = 'Praise FM Radio';
           coverImg.style.display = 'none';
