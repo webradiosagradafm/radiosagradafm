@@ -214,8 +214,8 @@
     <div class="station-info">
       <span>Praise FM Brasil</span> <span class="listeners" id="listeners">(— Ouvintes)</span>
       <div class="social-icons">
-        <a href="https://facebook.com/seu_perfil" target="_blank"><i class="fab fa-facebook-f"></i></a>
-        <a href="https://instagram.com/seu_perfil" target="_blank"><i class="fab fa-instagram"></i></a>
+        <a href="https://www.facebook.com/praisefmbrasil/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.instagram.com/praisefm.brasil/" target="_blank"><i class="fab fa-instagram"></i></a>
       </div>
     </div>
 
@@ -250,12 +250,12 @@
 
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
     const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/marglwedbnltv';
-    const STATION_INFO_API = 'https://api.zeno.fm/station/byid/marglwedbnltv'; // URL corrigida
+    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/marglwedbnltv'; // URL CORRETA PARA OUVINTES
 
     let currentTrackKey = '';
     const MAX_HISTORY = 10;
 
-    // Histórico em memória (sem localStorage para evitar erros em sandbox)
+    // Histórico em memória (sem localStorage)
     let history = [];
 
     function addToHistory(song, artist, coverUrl = '') {
@@ -308,7 +308,7 @@
           updatePlayPauseIcon();
         }).catch(err => {
           console.warn('Falha ao reproduzir:', err);
-          // Não mostra erro — só permite tentar de novo
+          // Em celulares, apenas permite tentar novamente
         });
       } else {
         player.pause();
@@ -384,10 +384,13 @@
         .then(data => {
           if (data.listeners !== undefined) {
             listenersEl.textContent = `(${data.listeners} Ouvintes)`;
+          } else {
+            listenersEl.textContent = '(— Ouvintes)';
           }
         })
         .catch(err => {
           console.warn('Erro ao buscar ouvintes:', err);
+          listenersEl.textContent = '(— Ouvintes)';
         });
     }
 
