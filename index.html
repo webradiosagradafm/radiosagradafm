@@ -117,7 +117,7 @@
 
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
     const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv';
-    const STATUS_API = 'https://api.zeno.fm/mounts/status/olisuxy9v3vtv';
+    const STATUS_API = '/api/listeners'; // proxy Vercel
 
     let currentTrackKey = '';
     let history = [];
@@ -178,7 +178,6 @@
     playPauseBtn.addEventListener('click', togglePlayback);
     updatePlayPauseIcon();
 
-    // Fetch ouvintes
     function fetchListeners() {
       fetch(STATUS_API)
         .then(res => res.json())
@@ -191,7 +190,6 @@
     fetchListeners();
     setInterval(fetchListeners, 30000);
 
-    // Now playing
     function setupNowPlaying() {
       const eventSource = new EventSource(NOWPLAYING_API);
       eventSource.onmessage = (event) => {
