@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Praise FM - Brasil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    .player-wrapper {
+      width: 100%;
+      max-width: 350px;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    .cover-image {
+      width: 100%;
+      height: 300px;
+      background: #111;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    .cover-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    .cover-fallback {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      max-width: 90%;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+    .song-title-fallback {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .artist-name-fallback {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+    .overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 3;
+    }
+    .play-btn {
+      background: white;
+      color: black;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .play-btn:hover {
+      transform: scale(1.05);
+    }
+    .song-info {
+      flex: 1;
+    }
+    .song-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .artist-name {
+      font-size: 1rem;
+      color: #ddd;
+      font-weight: 400;
+    }
+    .station-info {
+      background: #222;
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+    .listeners {
+      font-weight: 600;
+      color: #00ff9d;
+    }
+    .social-icons {
+      display: flex;
+      gap: 12px;
+    }
+    .social-icons a {
+      color: white;
+      font-size: 1.1rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .social-icons a:hover {
+      opacity: 1;
+    }
+    .volume-control {
+      padding: 12px 15px;
+      background: #111;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #volumeSlider {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      background: #333;
+      border-radius: 3px;
+      outline: none;
+    }
+    #volumeSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #00ff9d;
+      cursor: pointer;
+    }
+    .history-section {
+      padding: 20px;
+      background: #f9f9f9;
+      border-top: 1px solid #eee;
+    }
+    .history-title {
+      font-size: 0.9rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    .history-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .history-item:last-child {
+      border-bottom: none;
+    }
+    .history-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      margin-right: 12px;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #888;
+      font-size: 12px;
+    }
+    .history-text {
+      flex: 1;
+    }
+    .history-song {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-artist {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 2px;
+    }
+    .status {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.6);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #00ff9d;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-wrapper">
+
+    <div class="cover-image" id="coverContainer">
+      <img id="cover" src="" alt="Capa da música" style="display:none;">
+      <div class="cover-fallback" id="fallbackText">
+        <div class="song-title-fallback">Clique no botão ▶️ para ouvir</div>
+        <div class="artist-name-fallback">Praise FM Brasil</div>
+      </div>
+      <div class="overlay">
+        <div class="play-btn" id="playPauseBtn">
+          <i class="fas fa-play"></i>
+        </div>
+        <div class="song-info">
+          <div class="song-title" id="song">Clique no botão ▶️ para ouvir</div>
+          <div class="artist-name" id="artist">Praise FM Brasil</div>
+        </div>
+      </div>
+      <div class="status" id="statusText">AO VIVO</div>
+    </div>
+
+    <!-- Barra inferior com nome da rádio + ouvintes + redes -->
+    <div class="station-info">
+      <span>Praise FM Brasil</span> <span class="listeners" id="listeners">(— Ouvintes)</span>
+      <div class="social-icons">
+        <a href="https://www.facebook.com/praisefmbrasil/" target="_blank"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.instagram.com/praisefm.brasil/" target="_blank"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+
+    <!-- Barra de volume -->
+    <div class="volume-control">
+      <i class="fas fa-volume-up" style="color: white; font-size: 1rem;"></i>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+    </div>
+
+    <div class="history-section">
+      <div class="history-title">HISTORY - LATEST PLAYED SONGS</div>
+      <div id="historyList">
+        <div style="text-align:center;color:#999;padding:10px;">Nenhuma música tocada ainda</div>
+      </div>
+    </div>
+
+  </div>
+
+  <audio id="radioPlayer" preload="none">
+    <source src="https://stream.zeno.fm/olisuxy9v3vtv" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const player = document.getElementById('radioPlayer');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const songEl = document.getElementById('song');
+    const artistEl = document.getElementById('artist');
+    const coverImg = document.getElementById('cover');
+    const fallbackText = document.getElementById('fallbackText');
+    const statusText = document.getElementById('statusText');
+    const listenersEl = document.getElementById('listeners');
+
+    const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
+    const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv';
+    const STATION_INFO_API = 'https://api.zeno.fm/station/lookup/olisuxy9v3vtv';
+
+    let currentTrackKey = '';
+    const MAX_HISTORY = 10;
+    let history = [];
+
+    function addToHistory(song, artist, coverUrl = '') {
+      const key = `${artist} - ${song}`;
+      if (key === currentTrackKey) return;
+      currentTrackKey = key;
+
+      history = history.filter(item => !(item.song === song && item.artist === artist));
+      history.unshift({ song, artist, coverUrl, timestamp: Date.now() });
+      if (history.length > MAX_HISTORY) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (history.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#999;padding:10px;">Nenhuma música tocada ainda</div>';
+        return;
+      }
+      list.innerHTML = history.map(item => `
+        <div class="history-item">
+          <div class="history-img">
+            ${item.coverUrl ? `<img src="${item.coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">` : 
+              `<i class="fas fa-music" style="color:#888;"></i>`}
+          </div>
+          <div class="history-text">
+            <div class="history-song">${escapeHtml(item.song)}</div>
+            <div class="history-artist">${escapeHtml(item.artist)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updatePlayPauseIcon() {
+      const icon = playPauseBtn.querySelector('i');
+      icon.className = player.paused ? 'fas fa-play' : 'fas fa-pause';
+    }
+
+    function togglePlayback() {
+      if (player.paused) {
+        player.play().then(() => {
+          statusText.textContent = 'AO VIVO';
+          statusText.style.color = '#00ff9d';
+          updatePlayPauseIcon();
+        }).catch(err => {
+          console.warn('Falha ao reproduzir:', err);
+        });
+      } else {
+        player.pause();
+        statusText.textContent = 'PAUSADO';
+        statusText.style.color = '#ffcc00';
+        updatePlayPauseIcon();
+      }
+    }
+
+    volumeSlider.addEventListener('input', () => {
+      player.volume = volumeSlider.value;
+    });
+
+    player.volume = 0.7;
+    updatePlayPauseIcon();
+
+    playPauseBtn.addEventListener('click', togglePlayback);
+    player.addEventListener('play', updatePlayPauseIcon);
+    player.addEventListener('pause', updatePlayPauseIcon);
+
+    function setupNowPlaying() {
+      const eventSource = new EventSource(NOWPLAYING_API);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          let streamTitle = (data.streamTitle || '').trim() || 'Streaming Live';
+          const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
+          const artist = parts[0] || 'Praise FM Radio';
+          const song = parts.length > 1 ? parts.slice(1).join(' - ') : streamTitle;
+
+          artistEl.textContent = artist;
+          songEl.textContent = song;
+          fallbackText.querySelector('.song-title-fallback').textContent = song;
+          fallbackText.querySelector('.artist-name-fallback').textContent = artist;
+
+          let coverUrl = '';
+          if (artist !== 'Praise FM Radio' && song !== 'Streaming Live') {
+            fetch(
+              `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`
+            )
+              .then(res => res.json())
+              .then(lastfmData => {
+                if (lastfmData.track?.album?.image) {
+                  const images = lastfmData.track.album.image;
+                  const cover = images.find(img => img.size === 'extralarge') || images[images.length - 1];
+                  if (cover['#text']) {
+                    coverUrl = cover['#text'];
+                    coverImg.src = coverUrl;
+                    coverImg.style.display = 'block';
+                    fallbackText.style.display = 'none';
+                    addToHistory(song, artist, coverUrl);
+                  }
+                }
+              })
+              .catch(() => {
+                coverImg.style.display = 'none';
+                fallbackText.style.display = 'block';
+                addToHistory(song, artist, '');
+              });
+          } else {
+            coverImg.style.display = 'none';
+            fallbackText.style.display = 'block';
+            addToHistory(song, artist, '');
+          }
+        } catch (err) {
+          console.warn('Erro nos metadados:', err);
+          artistEl.textContent = 'Praise FM Radio';
+          songEl.textContent = 'Streaming Live';
+          fallbackText.querySelector('.song-title-fallback').textContent = 'Streaming Live';
+          fallbackText.querySelector('.artist-name-fallback').textContent = 'Praise FM Radio';
+          coverImg.style.display = 'none';
+          fallbackText.style.display = 'block';
+        }
+      };
+      eventSource.onerror = () => setTimeout(setupNowPlaying, 15000);
+    }
+
+    // Busca ouvintes a cada 30s
+    function fetchListeners() {
+      fetch(STATION_INFO_API)
+        .then(res => res.json())
+        .then(data => {
+          if (data.listeners !== undefined) {
+            listenersEl.textContent = `(${data.listeners} Ouvintes)`;
+          } else {
+            listenersEl.textContent = '(— Ouvintes)';
+          }
+        })
+        .catch(err => {
+          console.warn('Erro ao buscar ouvintes:', err);
+          listenersEl.textContent = '(— Ouvintes)';
+        });
+    }
+
+    // Inicia
+    fetchListeners();
+    setInterval(fetchListeners, 30000);
+    setupNowPlaying();
+  </script>
+</body>
+</html>
