@@ -33,6 +33,9 @@
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
       cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s; }
     .play-btn:hover { transform: scale(1.05); }
+    .song-info { flex: 1; color: white; }
+    .song-title { font-size: 1.2rem; font-weight: 700; }
+    .artist-name { font-size: 1rem; opacity: 0.8; }
     .station-info { background: #222; padding: 10px 15px; display: flex;
       justify-content: space-between; align-items: center; font-size: 0.9rem; color: #ccc; }
     .listeners { font-weight: 600; color: #00ff9d; }
@@ -67,6 +70,10 @@
       </div>
       <div class="overlay">
         <div class="play-btn" id="playPauseBtn"><i class="fas fa-play"></i></div>
+        <div class="song-info">
+          <div class="song-title" id="songTitle">...</div>
+          <div class="artist-name" id="artistName"></div>
+        </div>
       </div>
       <div class="status" id="statusText">AO VIVO</div>
     </div>
@@ -86,7 +93,7 @@
     </div>
 
     <div class="history-section">
-      <div class="history-title">HISTORY - LATEST PLAYED SONGS</div>
+      <div class="history-title">HISTÓRICO - ÚLTIMAS TOCADAS</div>
       <div id="historyList">
         <div style="text-align:center;color:#999;padding:10px;">Nenhuma música tocada ainda</div>
       </div>
@@ -105,12 +112,52 @@
     const fallbackText = document.getElementById('fallbackText');
     const statusText = document.getElementById('statusText');
     const listenersEl = document.getElementById('listeners');
+    const songTitleEl = document.getElementById('songTitle');
+    const artistNameEl = document.getElementById('artistName');
+
+    const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
+    const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv';
     const STATUS_API = 'https://api.zeno.fm/mounts/status/olisuxy9v3vtv';
+
+    let currentTrackKey = '';
+    let history = [];
+    const MAX_HISTORY = 10;
+
+    function addToHistory(song, artist, coverUrl = '') {
+      const key = `${artist} - ${song}`;
+      if (key === currentTrackKey) return;
+      currentTrackKey = key;
+      history = history.filter(item => !(item.song === song && item.artist === artist));
+      history.unshift({ song, artist, coverUrl });
+      if (history.length > MAX_HISTORY) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = document.getElementById('historyList');
+      if (history.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#999;padding:10px;">Nenhuma música tocada ainda</div>';
+        return;
+      }
+      list.innerHTML = history.map(item => `
+        <div class="history-item">
+          <div class="history-img">
+            ${item.coverUrl ? `<img src="${item.coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">` :
+              `<i class="fas fa-music" style="color:#888;"></i>`}
+          </div>
+          <div class="history-text">
+            <div class="history-song">${item.song}</div>
+            <div class="history-artist">${item.artist}</div>
+          </div>
+        </div>
+      `).join('');
+    }
 
     function updatePlayPauseIcon() {
       const icon = playPauseBtn.querySelector('i');
       icon.className = player.paused ? 'fas fa-play' : 'fas fa-pause';
     }
+
     function togglePlayback() {
       if (player.paused) {
         player.play().then(() => {
@@ -125,11 +172,13 @@
         updatePlayPauseIcon();
       }
     }
+
     volumeSlider.addEventListener('input', () => { player.volume = volumeSlider.value; });
     player.volume = 0.7;
     playPauseBtn.addEventListener('click', togglePlayback);
     updatePlayPauseIcon();
 
+    // Fetch ouvintes
     function fetchListeners() {
       fetch(STATUS_API)
         .then(res => res.json())
@@ -137,13 +186,55 @@
           const listeners = data?.icestats?.source?.listeners;
           listenersEl.textContent = listeners !== undefined ? `(${listeners} Ouvintes)` : '(— Ouvintes)';
         })
-        .catch(err => {
-          console.warn('Erro ao buscar ouvintes:', err);
-          listenersEl.textContent = '(— Ouvintes)';
-        });
+        .catch(() => listenersEl.textContent = '(— Ouvintes)');
     }
     fetchListeners();
     setInterval(fetchListeners, 30000);
+
+    // Now playing
+    function setupNowPlaying() {
+      const eventSource = new EventSource(NOWPLAYING_API);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          let streamTitle = (data.streamTitle || '').trim() || 'Streaming Live';
+          const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
+          const artist = parts[0] || 'Praise FM Brasil';
+          const song = parts.length > 1 ? parts.slice(1).join(' - ') : streamTitle;
+
+          songTitleEl.textContent = song;
+          artistNameEl.textContent = artist;
+
+          if (artist && song) {
+            fetch(`https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(song)}&format=json`)
+              .then(res => res.json())
+              .then(lastfmData => {
+                const images = lastfmData.track?.album?.image;
+                if (images) {
+                  const cover = images.find(img => img.size === 'extralarge') || images[images.length - 1];
+                  if (cover['#text']) {
+                    coverImg.src = cover['#text'];
+                    coverImg.style.display = 'block';
+                    fallbackText.style.display = 'none';
+                  } else {
+                    coverImg.style.display = 'none';
+                    fallbackText.style.display = 'block';
+                  }
+                } else {
+                  coverImg.style.display = 'none';
+                  fallbackText.style.display = 'block';
+                }
+                addToHistory(song, artist, coverImg.src || '');
+              })
+              .catch(() => addToHistory(song, artist, ''));
+          }
+        } catch (err) {
+          console.warn('Erro nos metadados:', err);
+        }
+      };
+      eventSource.onerror = () => setTimeout(setupNowPlaying, 15000);
+    }
+    setupNowPlaying();
   </script>
 </body>
 </html>
