@@ -230,7 +230,6 @@
     const artistNameEl = document.getElementById('artistName');
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
     const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv';
-    // Discogs token opcional — mantido por compatibilidade, mas não obrigatório
     const DISCOGS_TOKEN = 'YhCDaUYXMEnfKtWtAltJfGbYPrSkYnpqhIncSWyX';
     let currentTrackKey = '';
     let history = [];
@@ -253,7 +252,6 @@
     }
 
     async function fetchCoverFromLastFmOrDiscogs(artist, track) {
-      // 1. Tenta Last.fm
       try {
         const lastfmRes = await fetch(
           `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(track)}&format=json`
@@ -268,7 +266,6 @@
       } catch (e) {
         console.debug('Last.fm cover not found', e);
       }
-      // 2. Fallback: Discogs (opcional)
       try {
         const query = `${artist} ${track}`;
         const discogsRes = await fetch(
@@ -348,29 +345,26 @@
     playPauseBtn.addEventListener('click', togglePlayback);
     updatePlayPauseIcon();
 
-    function fetchListeners() {
-      fetch('/api/listeners')
-        .then(res => res.json())
-        .then(data => {
-          const listeners = data?.icestats?.source?.listeners;
-          listenersEl.textContent = listeners !== undefined ? `(${listeners} Ouvintes)` : '(— Ouvintes)';
-        })
-        .catch(() => listenersEl.textContent = '(— Ouvintes)');
-    }
-    fetchListeners();
-    setInterval(fetchListeners, 30000);
-
+    // ✅ Atualização: ouvintes vêm diretamente da stream (se disponíveis)
     function setupNowPlaying() {
       const eventSource = new EventSource(NOWPLAYING_API);
       eventSource.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
+
+          // 🔔 Atualiza ouvintes se existirem
+          if (typeof data.listeners === 'number') {
+            listenersEl.textContent = `(${data.listeners} Ouvintes)`;
+          }
+
           let streamTitle = (data.streamTitle || '').trim() || 'Streaming Live';
           const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
           const artist = parts[0] || 'Praise FM Brasil';
           const song = parts.length > 1 ? parts.slice(1).join(' - ') : 'Streaming Live';
+
           songTitleEl.textContent = song;
           artistNameEl.textContent = artist;
+
           const coverUrl = await fetchCoverFromLastFmOrDiscogs(artist, song);
           showCover(coverUrl);
           addToHistory(song, artist, coverUrl || '');
@@ -383,6 +377,7 @@
         setTimeout(setupNowPlaying, 10000);
       };
     }
+
     setupNowPlaying();
   </script>
 </body>
