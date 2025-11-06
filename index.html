@@ -244,7 +244,7 @@
     </div>
     <div class="station-info">
       <span>Praise FM Brasil</span>
-      <!-- ⭐️ Ícone de "Ao Vivo" com pulso mais lento -->
+      <!-- ⭐️ Ícone de "Ao Vivo" colado à esquerda da palavra -->
       <div class="live-indicator">
         <div class="live-icon"></div>
         <span>Ao Vivo</span>
@@ -347,4 +347,80 @@
     }
 
     function renderHistory() {
-      const list = document.getElementById('
+      const list = document.getElementById('historyList');
+      if (history.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#777;padding:10px;">Nenhuma música tocada ainda</div>';
+        return;
+      }
+      list.innerHTML = history.map(item => `
+        <div class="history-item">
+          <div class="history-img">
+            ${item.coverUrl 
+              ? `<img src="${item.coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:4px;">` 
+              : `<i class="fas fa-music" style="color:#666;"></i>`}
+          </div>
+          <div class="history-text">
+            <div class="history-song">${escapeHtml(item.song)}</div>
+            <div class="history-artist">${escapeHtml(item.artist)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function togglePlayback() {
+      if (player.paused) {
+        player.play()
+          .then(() => {
+            statusText.textContent = 'AO VIVO';
+            statusText.style.color = '#00ff9d';
+            updatePlayPauseIcon();
+          })
+          .catch(err => console.warn('Reprodução bloqueada:', err));
+      } else {
+        player.pause();
+        statusText.textContent = 'PAUSADO';
+        statusText.style.color = '#ffcc00';
+        updatePlayPauseIcon();
+      }
+    }
+
+    function updatePlayPauseIcon() {
+      const icon = playPauseBtn.querySelector('i');
+      icon.className = player.paused ? 'fas fa-play' : 'fas fa-pause';
+    }
+
+    volumeSlider.addEventListener('input', () => player.volume = volumeSlider.value);
+    player.volume = 0.7;
+    playPauseBtn.addEventListener('click', togglePlayback);
+    updatePlayPauseIcon();
+
+    function setupNowPlaying() {
+      const eventSource = new EventSource(NOWPLAYING_API);
+      eventSource.onmessage = async (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          let streamTitle = (data.streamTitle || '').trim() || 'Streaming Live';
+          const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
+          const artist = parts[0] || 'Praise FM Brasil';
+          const song = parts.length > 1 ? parts.slice(1).join(' - ') : 'Streaming Live';
+
+          songTitleEl.textContent = song;
+          artistNameEl.textContent = artist;
+
+          const coverUrl = await fetchCoverFromLastFmOrDiscogs(artist, song);
+          showCover(coverUrl);
+          addToHistory(song, artist, coverUrl || '');
+        } catch (err) {
+          console.warn('Erro nos metadados:', err);
+        }
+      };
+      eventSource.onerror = () => {
+        eventSource.close();
+        setTimeout(setupNowPlaying, 10000);
+      };
+    }
+
+    setupNowPlaying();
+  </script>
+</body>
+</html>
