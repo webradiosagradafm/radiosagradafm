@@ -100,7 +100,53 @@
       font-size: 0.9rem;
       color: #ccc;
     }
-    .listeners { font-weight: 600; color: #00ff9d; }
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #ccc;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .live-icon {
+      width: 12px;
+      height: 12px;
+      background: #ff3333;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    .live-icon::before,
+    .live-icon::after {
+      content: '';
+      position: absolute;
+      background: #ff3333;
+      border-radius: 50%;
+    }
+    .live-icon::before {
+      width: 20px;
+      height: 20px;
+      left: -4px;
+      top: -4px;
+      opacity: 0.6;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    .live-icon::after {
+      width: 28px;
+      height: 28px;
+      left: -8px;
+      top: -8px;
+      opacity: 0.3;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
     .social-icons { display: flex; gap: 12px; }
     .social-icons a { color: white; font-size: 1.1rem; opacity: 0.8; transition: opacity 0.2s; }
     .social-icons a:hover { opacity: 1; }
@@ -198,7 +244,11 @@
     </div>
     <div class="station-info">
       <span>Praise FM Brasil</span>
-      <span class="listeners" id="listeners">(— Ouvintes)</span>
+      <!-- ⭐️ Ícone de "Ao Vivo" com pulso animado -->
+      <div class="live-indicator">
+        <div class="live-icon"></div>
+        <span>Ao Vivo</span>
+      </div>
       <div class="social-icons">
         <a href="https://www.facebook.com/praisefmbrasil/" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i></a>
         <a href="https://www.instagram.com/praisefm.brasil/" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
@@ -225,7 +275,6 @@
     const coverImg = document.getElementById('cover');
     const coverPlaceholder = document.getElementById('coverPlaceholder');
     const statusText = document.getElementById('statusText');
-    const listenersEl = document.getElementById('listeners');
     const songTitleEl = document.getElementById('songTitle');
     const artistNameEl = document.getElementById('artistName');
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd';
@@ -345,18 +394,11 @@
     playPauseBtn.addEventListener('click', togglePlayback);
     updatePlayPauseIcon();
 
-    // ✅ Atualização: ouvintes vêm diretamente da stream (se disponíveis)
     function setupNowPlaying() {
       const eventSource = new EventSource(NOWPLAYING_API);
       eventSource.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
-
-          // 🔔 Atualiza ouvintes se existirem
-          if (typeof data.listeners === 'number') {
-            listenersEl.textContent = `(${data.listeners} Ouvintes)`;
-          }
-
           let streamTitle = (data.streamTitle || '').trim() || 'Streaming Live';
           const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
           const artist = parts[0] || 'Praise FM Brasil';
