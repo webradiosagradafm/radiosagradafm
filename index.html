@@ -364,7 +364,7 @@
             const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/j0x2805m8e0tv'; 
             const LASTFM_API_KEY = '7744c8f90ee053fc761e0e23bfa00b89'; 
             
-            // Link to Brasil logo on your GitHub - Assume que está na pasta 'imagem' (o caminho está correto para o manifest)
+            // Link to Brasil logo on your GitHub - Assume que está na pasta 'imagem'
             const STREAM_LOGO_URL = 'https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png';
             
             // Element references
@@ -562,7 +562,7 @@
 
             favoriteBtn.addEventListener('click', () => {
                 if (!currentSong || !currentArtist) return;
-                const key = `${currentArtist} - ${currentSong}`; 
+                const key = `${currentArtist} - currentSong`; 
                 toggleFavorite(key);
             });
 
@@ -577,7 +577,8 @@
 
             function isCommercial(title) {
                 const keywords = [
-                    'commercial', 'advertisement', 'sponsor', 'spot', 'publicidade', 'intervalo', 'break', 'jingle', 'comercial', 'anúncio', 'patrocínio', 'programa', 'pregação', 'praise fm brasil', 'live', 'ao vivo'
+                    // Corrigido para incluir palavras-chave que indicam spots/programas/falhas de metadados
+                    'commercial', 'advertisement', 'sponsor', 'spot', 'publicidade', 'intervalo', 'break', 'jingle', 'comercial', 'anúncio', 'patrocínio', 'programa', 'pregação', 'praise fm brasil', 'live', 'ao vivo', 'música desconhecida', 'pastor'
                 ];
                 const lower = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 return keywords.some(k => lower.includes(k));
@@ -630,14 +631,16 @@
                 eventSource.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
-                        let streamTitle = (data.streamTitle || '').trim() || 'Música Desconhecida';
+                        let streamTitle = (data.streamTitle || '').trim() || 'Praise FM Brasil - Spot'; // Inicia com Spot se estiver vazio
 
+                        // Limpa a string de metadados de caracteres estranhos
                         streamTitle = streamTitle.replace(/[^\p{L}\p{N}\s\-–—.,:;!?'"()&@#$%*+=/\\|<>[\]{}~`^_]/gu, ' ').replace(/\s+/g, ' ').trim();
 
-                        if (!streamTitle || streamTitle.length < 3) {
+                        // Se o título resultante for muito curto, força ser um spot
+                        if (!streamTitle || streamTitle.length < 5) {
                             streamTitle = 'Praise FM Brasil - Spot';
                         }
-
+                        
                         const isSpot = isCommercial(streamTitle);
                         
                         if (isSpot) {
@@ -657,7 +660,7 @@
                         fetchCoverArt(artist, song).then(coverUrl => {
                             if (!coverUrl || isSpot || coverUrl === STREAM_LOGO_URL) {
                                 toggleCoverDisplay(false); 
-                                coverImg.alt = isSpot ? 'Comercial' : `${artist} - ${song}`;
+                                coverImg.alt = isSpot ? 'Comercial/Programa' : `${artist} - ${song}`;
                                 addToHistory(song, artist, STREAM_LOGO_URL); 
 
                             } else {
