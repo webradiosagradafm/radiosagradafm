@@ -48,18 +48,12 @@
 
         .header {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end; /* Alinha o botão de favorito para a direita */
             align-items: center;
             margin-bottom: 20px;
             height: 24px;
         }
         
-        .header img {
-            max-width: 150px;
-            height: 100%;
-            object-fit: contain;
-        }
-
         .favorite-btn {
             background: none;
             border: none;
@@ -312,7 +306,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png" alt="Praise FM Brasil" style="height: 24px;" />
             <button class="favorite-btn" id="favoriteBtn" title="Favoritar esta música" aria-label="Favoritar esta música">☆</button>
         </div>
 
@@ -389,12 +382,15 @@
             playBtn.setAttribute('aria-label', playing ? 'Pausar o stream' : 'Reproduzir o stream');
         }
 
+        // Tenta dar play no início
         player.play().then(() => {
             playing = true;
             updatePlayButton();
             statusText.textContent = 'AO VIVO • Tocando agora';
         }).catch(err => {
             console.warn('Autoplay bloqueado — interação do usuário necessária');
+            playing = false; // Garante que o estado inicial é "Pausado"
+            updatePlayButton();
             statusText.textContent = 'Clique em Play para ouvir.';
         });
 
@@ -535,7 +531,7 @@
 
         favoriteBtn.addEventListener('click', () => {
             if (!currentSong || !currentArtist) return;
-            const key = `${currentArtist} - `${currentSong}`;
+            const key = `${currentArtist} - ${currentSong}`; // CORREÇÃO DE SINTAXE: removida crase extra aqui
             toggleFavorite(key);
         });
 
