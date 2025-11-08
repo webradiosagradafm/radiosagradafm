@@ -108,13 +108,13 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: none; 
+            /* Corrigido: Inicialmente, o logo é visível se não houver capa */
+            display: block; 
         }
 
-        /* ESTILO PARA O ÍCONE PADRÃO */
+        /* ESTILO PARA O ÍCONE PADRÃO - REMOVIDO OU ESCONDIDO, JÁ QUE AGORA USAMOS O LOGO */
         .show-image .fa-music-placeholder {
-            font-size: 3rem; 
-            color: #bbb; 
+            display: none; /* Não precisamos mais do ícone de música aqui */
         }
 
         .show-image.favorited-cover {
@@ -329,8 +329,7 @@
             <div class="station-desc">Música Cristã & Louvor 24/7</div>
 
             <div class="show-image" id="showImage">
-                <i class="fas fa-music fa-music-placeholder" id="placeholderIcon"></i>
-                <img id="coverImg" src="" alt="Capa da música atual" style="display: none;" />
+                <img id="coverImg" src="" alt="Capa da música atual" /> 
             </div>
 
             <div class="show-info">
@@ -383,7 +382,7 @@
         const historyList = document.getElementById('historyList');
         const favoriteBtn = document.getElementById('favoriteBtn');
         const showImageEl = document.getElementById('showImage');
-        const placeholderIcon = document.getElementById('placeholderIcon');
+        // REMOVIDO: const placeholderIcon = document.getElementById('placeholderIcon'); (não usamos mais o ícone)
 
         let playing = false;
         let currentTrackKey = '';
@@ -500,7 +499,7 @@
                 return `
                     <div class="history-item">
                         <div class="history-img">
-                            ${item.coverUrl && item.coverUrl !== STREAM_LOGO_URL ? `<img src="${item.coverUrl}" alt="${item.artist} - ${item.song}">` : '<i class="fas fa-music" style="color:#888;font-size:1.2rem;"></i>'}
+                            ${item.coverUrl && item.coverUrl !== STREAM_LOGO_URL ? `<img src="${item.coverUrl}" alt="${item.artist} - ${item.song}">` : `<img src="${STREAM_LOGO_URL}" alt="Logo Praise FM Brasil" />`}
                         </div>
                         <div class="history-text">
                             <div class="history-title-item">
@@ -623,10 +622,10 @@
             if (showImage && imageUrl && imageUrl !== STREAM_LOGO_URL) {
                 coverImg.src = imageUrl;
                 coverImg.style.display = 'block';
-                placeholderIcon.style.display = 'none';
             } else {
-                coverImg.style.display = 'none';
-                placeholderIcon.style.display = 'block';
+                // CORREÇÃO: Usar o logo como fallback e garantir que ele esteja visível
+                coverImg.src = STREAM_LOGO_URL; 
+                coverImg.style.display = 'block';
             }
         }
 
@@ -662,14 +661,14 @@
 
                     fetchCoverArt(artist, song).then(coverUrl => {
                         if (!coverUrl || isSpot || coverUrl === STREAM_LOGO_URL) {
-                            toggleCoverDisplay(false); 
+                            toggleCoverDisplay(false); /* Chama com false para exibir o logo */
                             coverImg.alt = isSpot ? 'Comercial' : `${artist} - ${song}`;
                             addToHistory(song, artist, STREAM_LOGO_URL); 
 
                         } else {
                             isInvalidCover(coverUrl).then(isInvalid => {
                                 if (isInvalid) {
-                                    toggleCoverDisplay(false); 
+                                    toggleCoverDisplay(false); /* Chama com false para exibir o logo */
                                     coverImg.alt = `${artist} - ${song}`;
                                 } else {
                                     toggleCoverDisplay(true, coverUrl); 
@@ -677,7 +676,7 @@
                                 }
                                 addToHistory(song, artist, coverImg.src);
                             }).catch(() => {
-                                toggleCoverDisplay(false); 
+                                toggleCoverDisplay(false); /* Chama com false para exibir o logo */
                                 coverImg.alt = `${artist} - ${song}`;
                                 addToHistory(song, artist, STREAM_LOGO_URL);
                             });
@@ -693,7 +692,7 @@
 
                     }).catch(err => {
                         console.error("Erro ao buscar capa no Then/Catch principal:", err);
-                        toggleCoverDisplay(false); 
+                        toggleCoverDisplay(false); /* Chama com false para exibir o logo */
                         coverImg.alt = 'Praise FM Brasil - Ao Vivo';
                         currentTitleEl.textContent = 'Praise FM Brasil - Ao Vivo';
                         statusText.textContent = 'AO VIVO • Ao Vivo';
@@ -702,7 +701,7 @@
                 } catch (err) {
                     console.warn('Erro ao analisar metadados', err);
                     currentTitleEl.textContent = 'Praise FM Brasil - Ao Vivo';
-                    toggleCoverDisplay(false); 
+                    toggleCoverDisplay(false); /* Chama com false para exibir o logo */
                     statusText.textContent = 'AO VIVO • Ao Vivo';
                 }
             };
@@ -714,7 +713,8 @@
             };
         }
         
-        toggleCoverDisplay(false); 
+        // Chamada inicial para garantir que o logo esteja visível
+        toggleCoverDisplay(false); /* Sempre inicia com o logo como fallback */
         setupNowPlaying();
         updatePlayButton();
     </script>
