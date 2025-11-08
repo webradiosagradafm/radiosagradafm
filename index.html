@@ -318,7 +318,7 @@
 
         <div class="content">
             <div class="station-title">Praise FM Brasil</div>
-            <div class="station-desc">Música cristã & louvor 24/7</div>
+            <div class="station-desc">Louvor e adoração</div>
 
             <div class="show-image" id="showImage">
                 <img id="coverImg" src="https://via.placeholder.com/200x200?text=Loading+Cover" alt="Capa da música atual" />
@@ -337,7 +337,7 @@
             <div class="volume-control">
                 <label for="volumeSlider" class="sr-only">Ajustar volume</label>
                 <i class="fas fa-volume-up" aria-hidden="true"></i>
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0.7" role="slider" />
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7" aria-valuemin="0" aria-valuenow="0.7" role="slider" />
             </div>
 
             <div class="history-section">
@@ -358,8 +358,8 @@
         const STREAM_URL = 'https://stream.zeno.fm/olisuxy9v3vtv'; 
         const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv'; 
         const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd'; 
-        // URL da imagem de logo (Logo Praise FM Brasil.png) hospedada no repositório GitHub
-        const STREAM_LOGO_URL = 'https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/Logo%20Praise%20FM%20Brasil.png';
+        // 🔑 CORREÇÃO 1: Link do logo agora aponta para o caminho correto na pasta 'imagem/'
+        const STREAM_LOGO_URL = 'https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png';
         
         const player = document.getElementById('radioPlayer');
         const playBtn = document.getElementById('playBtn');
@@ -389,14 +389,12 @@
             playBtn.setAttribute('aria-label', playing ? 'Pausar o stream' : 'Reproduzir o stream');
         }
 
-        // Tenta iniciar a reprodução (será bloqueado pelo navegador, mas prepara o player)
         player.play().then(() => {
             playing = true;
             updatePlayButton();
             statusText.textContent = 'AO VIVO • Tocando agora';
         }).catch(err => {
             console.warn('Autoplay bloqueado — interação do usuário necessária');
-            // Altera o status para instruir o usuário
             statusText.textContent = 'Clique em Play para ouvir.';
         });
 
@@ -422,24 +420,24 @@
             statusText.textContent = `Volume: ${Math.round(player.volume * 100)}%`;
         });
 
+        // 🔑 CORREÇÃO 2: Usa new Date() para garantir a data local correta do ouvinte
         function updateTime() {
-            const brasiliaTime = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-            const brasiliaDate = new Date(brasiliaTime);
-
-            const timeFormatted = brasiliaDate.toLocaleTimeString('pt-BR', {
-                hour12: false,
+            const now = new Date(); // Pega a data e hora local do cliente
+            
+            const timeFormatted = now.toLocaleTimeString('pt-BR', {
                 hour: '2-digit',
-                minute: '2-digit'
+                minute: '2-digit',
+                hour12: false
             });
 
-            const dateFormatted = brasiliaDate.toLocaleDateString('pt-BR', {
+            const dateFormatted = now.toLocaleDateString('pt-BR', {
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
             });
 
             currentTimeEl.textContent = timeFormatted;
-            currentDateEl.textContent = dateFormatted; 
+            currentDateEl.textContent = dateFormatted;
         }
 
         setInterval(updateTime, 1000);
@@ -559,8 +557,7 @@
         }
 
         function fetchCoverArt(artist, song) {
-            if (!artist || !song || isCommercial(song) || artist === 'Praise FM Brasil' || song === 'Streaming Live') {
-                // Linha corrigida: Retorna o logo padrão imediatamente para faixas não musicais
+            if (!artist || !song || isCommercial(song) || artist === 'Praise FM Brasil' || song === 'Streaming Live' || song.toLowerCase().includes('pregação da palavra')) {
                 return Promise.resolve(STREAM_LOGO_URL); 
             }
 
@@ -578,7 +575,6 @@
                 })
                 .catch(err => {
                     console.warn('Falha ao buscar capa:', err);
-                    // Retorna o logo padrão em caso de erro da API
                     return STREAM_LOGO_URL; 
                 });
         }
@@ -593,7 +589,6 @@
         }
 
         function setupNowPlaying() {
-            // AQUI ESTÁ O ERRO: Certifique-se de que a API é EventSource e não um fetch simples
             const eventSource = new EventSource(NOWPLAYING_API);
 
             eventSource.onmessage = (event) => {
@@ -608,10 +603,26 @@
                     }
 
                     const isSpot = isCommercial(streamTitle);
+                    
+                    // 🔑 CORREÇÃO 3: Lógica para tratar "Pregação da Palavra"
+                    const isPreaching = streamTitle.toLowerCase().includes('pregação da palavra');
 
                     if (isSpot) {
                         streamTitle = 'Praise FM Brasil - Spot';
                     }
+                    
+                    if (isPreaching) {
+                        // Se for pregação, definimos um título genérico e pulamos a busca de capa
+                        currentTitleEl.textContent = 'Praise FM Brasil - Ao Vivo';
+                        currentTitleEl.title = 'Praise FM Brasil - Ao Vivo';
+                        coverImg.src = STREAM_LOGO_URL;
+                        coverImg.alt = 'Praise FM Brasil - Ao Vivo';
+                        statusText.textContent = '📢 Pregação da Palavra';
+                        // Adicionamos à história de forma genérica
+                        addToHistory('Pregação da Palavra', 'Praise FM Brasil', STREAM_LOGO_URL);
+                        return; // Sai da função para não processar como música normal
+                    }
+
 
                     const parts = streamTitle.split(' - ').map(p => p.trim()).filter(Boolean);
                     const artist = parts[0] || 'Praise FM Brasil';
@@ -625,8 +636,8 @@
 
                     // Busca capa
                     fetchCoverArt(artist, song).then(coverUrl => {
-                        // Se a URL for VAZIA (música sem capa no Last.fm) ou for um spot, usamos o logo padrão
-                        if (!coverUrl || isSpot || coverUrl === STREAM_LOGO_URL) {
+                        // Se a URL for VAZIA, spot ou pregação, usamos o logo padrão
+                        if (!coverUrl || isSpot || isPreaching || coverUrl === STREAM_LOGO_URL) {
                             coverImg.src = STREAM_LOGO_URL; 
                             coverImg.alt = isSpot ? 'Comercial' : `${artist} - ${song}`;
                             addToHistory(song, artist, coverImg.src); 
@@ -656,9 +667,8 @@
                             statusText.textContent = '📢 Este é um comercial';
                         }
 
-                    } /* <--- PARÊNTESE DE FECHAMENTO AQUI ERA CRÍTICO */ ).catch(err => {
+                    }).catch(err => {
                         console.error("Erro ao buscar capa no Then/Catch principal:", err);
-                        // Fallback para o logo se a cadeia de promessas falhar
                         coverImg.src = STREAM_LOGO_URL;
                         coverImg.alt = 'Praise FM Brasil - Tocando ao vivo';
                         currentTitleEl.textContent = 'Praise FM Brasil - Tocando ao vivo';
