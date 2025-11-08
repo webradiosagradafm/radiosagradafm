@@ -67,14 +67,14 @@
       font-weight: bold;
       margin-bottom: 4px;
       color: #222;
-      text-align: center; /* Centraliza o título da estação */
+      text-align: center;
     }
 
     .station-desc {
       font-size: 14px;
       color: #777;
       margin-bottom: 20px;
-      text-align: center; /* Centraliza a descrição */
+      text-align: center;
     }
 
     .show-image {
@@ -322,7 +322,7 @@
     const STREAM_URL = 'https://stream.zeno.fm/olisuxy9v3vtv'; 
     const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/olisuxy9v3vtv'; 
     const LASTFM_API_KEY = '3ce134e4f02accfff4367ada927e6dcd'; 
-    // 👈 SEU LINK RAW DO GITHUB COM LOGO TRANSPARENTE E SLOGAN
+    // SEU LINK RAW DO GITHUB (com fundo transparente e "Louvor e Adoração" na imagem)
     const STREAM_LOGO_URL = 'https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png';
     
     const player = document.getElementById('radioPlayer');
@@ -354,6 +354,7 @@
       playBtn.setAttribute('aria-label', playing ? 'Pausar o stream' : 'Reproduzir o stream');
     }
 
+    // A tentativa de play inicial é para cumprir a política de autoplay
     player.play().then(() => {
       playing = true;
       updatePlayButton();
@@ -515,16 +516,16 @@
       }
     });
 
-    // Função para detectar spots/comerciais (mais keywords para robustez)
+    // Função para detectar spots/comerciais
     function isCommercial(title) {
       const keywords = [
         'commercial', 'advertisement', 'sponsor', 'spot', 'publicidade', 'intervalo', 'break', 'jingle', 'comercial', 'anúncio', 'patrocínio'
       ];
-      const lower = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+      const lower = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       return keywords.some(k => lower.includes(k));
     }
 
-    // Função para buscar capa (agora retorna STREAM_LOGO_URL em caso de falha ou genérico)
+    // Função para buscar capa (agora retorna STREAM_LOGO_URL em caso de falha, genérico ou sem capa)
     function fetchCoverArt(artist, song) {
       // Caso 1: Spot/Genérico - Retorna o logo
       if (!artist || !song || isCommercial(song) || artist === 'Praise FM Brasil' || song === 'Streaming Live') {
@@ -590,7 +591,7 @@
 
           // Busca capa
           fetchCoverArt(artist, song).then(coverUrl => {
-            // Se a URL for VAZIA (música sem capa no Last.fm) ou for um spot, usamos o logo padrão (STREAM_LOGO_URL)
+            // Se a URL for VAZIA (música sem capa no Last.fm) ou for um spot, usamos o logo padrão
             if (!coverUrl || isSpot || coverUrl === STREAM_LOGO_URL) {
               coverImg.src = STREAM_LOGO_URL; 
               coverImg.alt = isSpot ? 'Comercial' : `${artist} - ${song}`;
