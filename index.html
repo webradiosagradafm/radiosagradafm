@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Praise FM Brasil — Ouça ao Vivo</title>
     
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="imagem/apple-icon-180x180.png">
-    <meta name="theme-color" content="#14a790"/> 
-    
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     
@@ -16,13 +12,13 @@
     
     <style>
         :root {
-            /* COR: VERDE/CIANO para o tema Brasil */
+            /* COR: VERDE/CIANO para o tema Brasil, combinando com o logo */
             --primary-color: #14a790; 
             --secondary-color: #ffffff;
-            --background-color: #f0f4f8;
+            --background-color: #e9edf2;
             --text-color: #333;
             --light-text-color: #666;
-            --border-color: #eee;
+            --border-color: #ddd;
         }
 
         * {
@@ -162,7 +158,7 @@
         }
 
         .play-button:hover {
-            background-color: #108d77;
+            background-color: #118f7a;
             box-shadow: 0 6px 15px rgba(20, 167, 144, 0.6);
         }
 
@@ -322,7 +318,7 @@
 
         <div class="content">
             <div class="station-title">Praise FM Brasil</div>
-            <div class="station-desc">Louvor e Adoração</div>
+            <div class="station-desc">Música Cristã & Louvor 24/7</div>
 
             <div class="show-image" id="showImage">
                 <img id="coverImg" src="" alt="Capa da música atual" /> 
@@ -359,15 +355,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 🔑 Brasil Configuration - Zeno FM ID
-            const STREAM_URL = 'https://stream.zeno.fm/j0x2805m8e0tv'; 
-            const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/j0x2805m8e0tv'; 
+            // 🔑 Configurações Brasil - ID ZENO FM FINAL
+            const STREAM_URL = 'https://stream.zeno.fm/marglwedbnltv'; 
+            const NOWPLAYING_API = 'https://api.zeno.fm/mounts/metadata/subscribe/marglwedbnltv'; 
             const LASTFM_API_KEY = '7744c8f90ee053fc761e0e23bfa00b89'; 
             
-            // Link to Brasil logo on your GitHub - Assume que está na pasta 'imagem'
+            // Link do logo Brasil no seu GitHub
             const STREAM_LOGO_URL = 'https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png';
             
-            // Element references
+            // Referências aos elementos
             const player = document.getElementById('radioPlayer');
             const playBtn = document.getElementById('playBtn');
             const volumeSlider = document.getElementById('volumeSlider');
@@ -379,11 +375,10 @@
             const historyList = document.getElementById('historyList');
             const favoriteBtn = document.getElementById('favoriteBtn');
             const showImageEl = document.getElementById('showImage');
-
-            // Aqui está a correção principal: O SCRIPT SÓ RODA DEPOIS QUE OS ELEMENTOS EXISTEM
+            
             if (!player || !playBtn || !volumeSlider) {
-                console.error("Erro: Elementos essenciais do player não encontrados.");
-                statusText.textContent = "Erro ao carregar o player. Por favor, atualize.";
+                console.error("Erro: Elementos essenciais do player não foram encontrados.");
+                statusText.textContent = "Erro ao carregar o player. Recarregue a página.";
                 return; 
             }
 
@@ -398,9 +393,9 @@
             player.src = STREAM_URL;
             player.volume = volumeSlider.value;
             
-            // ✅ Garante que o logo Brasil é o primeiro a ser exibido
+            // ✅ CORREÇÃO FINAL: Garante que o logo é o primeiro a ser exibido
             coverImg.src = STREAM_LOGO_URL;
-            coverImg.alt = 'Praise FM Brasil Logo';
+            coverImg.alt = 'Logo Praise FM Brasil';
 
 
             function updatePlayButton() {
@@ -408,11 +403,11 @@
                 playBtn.setAttribute('aria-label', playing ? 'Pausar rádio' : 'Tocar rádio');
             }
 
-            // Tentativa de autoplay no início
+            // Tenta dar play no início
             player.play().then(() => {
                 playing = true;
                 updatePlayButton();
-                statusText.textContent = 'AO VIVO • Tocando Agora';
+                statusText.textContent = 'AO VIVO • Tocando agora';
             }).catch(err => {
                 console.warn('Autoplay bloqueado — interação do usuário necessária');
                 playing = false; 
@@ -426,10 +421,10 @@
                     statusText.textContent = 'Pausado';
                 } else {
                     player.play().then(() => {
-                        statusText.textContent = 'AO VIVO • Tocando Agora';
+                        statusText.textContent = 'AO VIVO • Tocando agora';
                     }).catch(err => {
                         statusText.textContent = 'Falha ao tocar — tente novamente.';
-                        console.error('Erro ao tocar:', err);
+                        console.error('Play error:', err);
                     });
                 }
                 playing = !playing;
@@ -450,7 +445,7 @@
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: false, 
-                    timeZone: 'America/Sao_Paulo' /* BRASIL - Time Zone (Horário de Brasília) */
+                    timeZone: 'America/Sao_Paulo' /* Fuso Horário Brasil (São Paulo) */
                 };
 
                 const optionsDate = {
@@ -460,7 +455,7 @@
                     timeZone: 'America/Sao_Paulo' 
                 };
                 
-                const timeFormatted = now.toLocaleTimeString('pt-BR', optionsTime).replace(':', 'h');
+                const timeFormatted = now.toLocaleTimeString('pt-BR', optionsTime);
                 const dateFormatted = now.toLocaleDateString('pt-BR', optionsDate);
 
                 currentTimeEl.textContent = timeFormatted;
@@ -497,7 +492,7 @@
                     return `
                         <div class="history-item">
                             <div class="history-img">
-                                ${item.coverUrl && item.coverUrl !== STREAM_LOGO_URL ? `<img src="${item.coverUrl}" alt="${item.artist} - ${item.song}">` : `<img src="${STREAM_LOGO_URL}" alt="Praise FM Brasil Logo" />`}
+                                ${item.coverUrl && item.coverUrl !== STREAM_LOGO_URL ? `<img src="${item.coverUrl}" alt="${item.artist} - ${item.song}">` : `<img src="${STREAM_LOGO_URL}" alt="Logo Praise FM Brasil" />`}
                             </div>
                             <div class="history-text">
                                 <div class="history-title-item">
@@ -562,7 +557,7 @@
 
             favoriteBtn.addEventListener('click', () => {
                 if (!currentSong || !currentArtist) return;
-                const key = `${currentArtist} - currentSong`; 
+                const key = `${currentArtist} - ${currentSong}`; 
                 toggleFavorite(key);
             });
 
@@ -577,15 +572,14 @@
 
             function isCommercial(title) {
                 const keywords = [
-                    // Corrigido para incluir palavras-chave que indicam spots/programas/falhas de metadados
-                    'commercial', 'advertisement', 'sponsor', 'spot', 'publicidade', 'intervalo', 'break', 'jingle', 'comercial', 'anúncio', 'patrocínio', 'programa', 'pregação', 'praise fm brasil', 'live', 'ao vivo', 'música desconhecida', 'pastor'
+                    'commercial', 'advertisement', 'sponsor', 'spot', 'publicidade', 'intervalo', 'break', 'jingle', 'comercial', 'anúncio', 'patrocínio'
                 ];
                 const lower = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 return keywords.some(k => lower.includes(k));
             }
 
             function fetchCoverArt(artist, song) {
-                if (!artist || !song || isCommercial(song) || artist === 'Praise FM Brasil' || song === 'Live') {
+                if (!artist || !song || isCommercial(song) || artist === 'Praise FM Brasil' || song === 'Ao Vivo') {
                     return Promise.resolve(STREAM_LOGO_URL); 
                 }
                 
@@ -602,7 +596,7 @@
                         return '';
                     })
                     .catch(err => {
-                        console.warn('Falha ao buscar capa:', err);
+                        console.warn('Failed to fetch cover:', err);
                         return STREAM_LOGO_URL; 
                     });
             }
@@ -621,7 +615,7 @@
                 if (showImage && imageUrl && imageUrl !== STREAM_LOGO_URL) {
                     coverImg.src = imageUrl;
                 } else {
-                    coverImg.src = STREAM_LOGO_URL; // Usa o logo Brasil como fallback
+                    coverImg.src = STREAM_LOGO_URL; // Usa o logo como fallback
                 }
             }
 
@@ -631,16 +625,14 @@
                 eventSource.onmessage = (event) => {
                     try {
                         const data = JSON.parse(event.data);
-                        let streamTitle = (data.streamTitle || '').trim() || 'Praise FM Brasil - Spot'; // Inicia com Spot se estiver vazio
+                        let streamTitle = (data.streamTitle || '').trim() || 'Música Desconhecida';
 
-                        // Limpa a string de metadados de caracteres estranhos
                         streamTitle = streamTitle.replace(/[^\p{L}\p{N}\s\-–—.,:;!?'"()&@#$%*+=/\\|<>[\]{}~`^_]/gu, ' ').replace(/\s+/g, ' ').trim();
 
-                        // Se o título resultante for muito curto, força ser um spot
-                        if (!streamTitle || streamTitle.length < 5) {
+                        if (!streamTitle || streamTitle.length < 3) {
                             streamTitle = 'Praise FM Brasil - Spot';
                         }
-                        
+
                         const isSpot = isCommercial(streamTitle);
                         
                         if (isSpot) {
@@ -660,7 +652,7 @@
                         fetchCoverArt(artist, song).then(coverUrl => {
                             if (!coverUrl || isSpot || coverUrl === STREAM_LOGO_URL) {
                                 toggleCoverDisplay(false); 
-                                coverImg.alt = isSpot ? 'Comercial/Programa' : `${artist} - ${song}`;
+                                coverImg.alt = isSpot ? 'Comercial' : `${artist} - ${song}`;
                                 addToHistory(song, artist, STREAM_LOGO_URL); 
 
                             } else {
@@ -682,10 +674,10 @@
 
                             updateFavoriteButton();
 
-                            statusText.textContent = `AO VIVO • Tocando Agora: ${artist} - ${song}`;
+                            statusText.textContent = `AO VIVO • Tocando: ${artist} - ${song}`;
 
                             if (isSpot) {
-                                statusText.textContent = '📢 Intervalo Comercial/Programa';
+                                statusText.textContent = '📢 Este é um comercial';
                             }
 
                         }).catch(err => {
