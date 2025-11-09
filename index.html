@@ -5,7 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Praise FM Brasil — Ouça ao Vivo</title>
 
-    <!-- ✅ Google Analytics 4 -->
+    <!-- ✅ Google tag (gtag.js) - Novo Snippet -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-N9KQRXHLK4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-N9KQRXHLK4');
+    </script>
+    <!-- ✅ Fim do Novo Snippet -->
+
+    <!-- ✅ Google Analytics 4 Original -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-0RNK6G5WWL"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -22,7 +33,7 @@
         });
       });
     </script>
-    <!-- ✅ Fim do Google Analytics 4 -->
+    <!-- ✅ Fim do Google Analytics 4 Original -->
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
