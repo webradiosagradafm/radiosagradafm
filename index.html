@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Praise FM Brasil — Louvor e Adoração</title>
 
   <!-- ✅ Google Analytics 4 -->
@@ -12,108 +12,52 @@
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
     gtag('config', 'G-0RNK6G5WWL');
-  </script>
-  <!-- ✅ Fim do GA4 -->
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-
-  <style>
-    /* 🔹 Aqui entra exatamente o mesmo CSS do seu HTML anterior */
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #0c0c0c;
-      color: #fff;
-      text-align: center;
-      margin: 0;
-      padding: 0;
-    }
-
-    .logo {
-      margin-top: 30px;
-      width: 200px;
-    }
-
-    .player {
-      margin-top: 40px;
-    }
-
-    button {
-      background: #ff4b2b;
-      border: none;
-      color: white;
-      padding: 15px 25px;
-      font-size: 18px;
-      border-radius: 50px;
-      cursor: pointer;
-    }
-
-    #status {
-      margin-top: 15px;
-      color: #ccc;
-    }
-  </style>
-</head>
-
-<body>
-  <img src="https://raw.githubusercontent.com/webradiosagradafm/radiosagradafm/main/imagem/Logo%20Praise%20FM%20Brasil.png" alt="Logo Praise FM Brasil" class="logo" />
-  <h2>Louvor e Adoração</h2>
-
-  <div class="player">
-    <button id="playBtn"><i class="fas fa-play"></i> Ouvir Agora</button>
-    <p id="status">Carregando...</p>
-  </div>
-
-  <audio id="radioPlayer" preload="none" crossorigin="anonymous"></audio>
-
-  <script>
-    const STREAM_URL = "https://stream.zeno.fm/marglwedbnltv";
-    const player = document.getElementById("radioPlayer");
-    const playBtn = document.getElementById("playBtn");
-    const statusText = document.getElementById("status");
-
-    player.src = STREAM_URL;
-    player.volume = 0.7;
-
-    // ✅ Envia evento de GA4 quando o usuário acessa a página
-    gtag('event', 'visit_radio_page', {
-      event_category: 'Radio',
-      event_label: 'Page Loaded',
-      value: 1
-    });
-
-    playBtn.addEventListener("click", () => {
-      if (player.paused) {
-        player.play();
-        playBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
-        statusText.textContent = "AO VIVO • Tocando agora";
-
-        // ✅ Evento GA4 ao dar play
-        gtag('event', 'play_radio', {
-          event_category: 'Radio',
-          event_label: 'Manual Play',
-          value: 1
-        });
-      } else {
-        player.pause();
-        playBtn.innerHTML = '<i class="fas fa-play"></i> Ouvir Agora';
-        statusText.textContent = "Pausado";
-      }
-    });
-
-    // ✅ Tentativa de autoplay quando entra no site
-    window.addEventListener("load", () => {
-      player.play().then(() => {
-        statusText.textContent = "AO VIVO • Tocando agora";
-        gtag('event', 'play_radio', {
-          event_category: 'Radio',
-          event_label: 'AutoPlay',
-          value: 1
-        });
-      }).catch(() => {
-        statusText.textContent = "Clique em Play para ouvir.";
+    // Envia evento automaticamente quando o visitante acessa o site
+    window.addEventListener('load', () => {
+      gtag('event', 'play_radio', {
+        event_category: 'Player',
+        event_label: 'Praise FM Brasil',
+        value: 1
       });
     });
   </script>
+  <!-- ✅ Fim do GA4 -->
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <img src="logo.png" alt="Praise FM Brasil" class="logo" />
+      <h1>Praise FM Brasil</h1>
+      <p class="slogan">Louvor e Adoração</p>
+    </header>
+
+    <main>
+      <div class="player-card">
+        <iframe 
+          src="https://zeno.fm/player/praisefmbrasil" 
+          frameborder="0" 
+          scrolling="no" 
+          width="100%" 
+          height="150" 
+          allow="autoplay" 
+          loading="lazy">
+        </iframe>
+      </div>
+
+      <section class="recent">
+        <h2>Últimas músicas</h2>
+        <div id="recent-songs">
+          Carregando...
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2025 Praise FM Brasil — Louvor e Adoração</p>
+    </footer>
+  </div>
 </body>
 </html>
