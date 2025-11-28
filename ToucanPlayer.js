@@ -89,7 +89,7 @@
         const [eh, em] = p.end.split(":").map(Number);
         const sSuffix = sh >= 12 ? "PM" : "AM";
         const eSuffix = eh >= 12 ? "PM" : "AM";
-        // Convert to 12-hour format: (H + 11) % 12 + 1
+        // Converte para formato de 12 horas: (H + 11) % 12 + 1
         const sHour = ((sh + 11) % 12) + 1;
         const eHour = ((eh + 11) % 12) + 1;
         return `${sHour}:${sm.toString().padStart(2, '0')} ${sSuffix} - ${eHour}:${em.toString().padStart(2, '0')} ${eSuffix}`;
@@ -157,9 +157,10 @@
             
             // Lida com a transição de meia-noite
             if (e <= s) e += 1440; 
+            if (n < s) n += 1440;
 
             const total = e - s;
-            const elapsed = (n >= s && n < e) ? n - s : (n + 1440) - s;
+            const elapsed = n - s;
 
             const pct = total > 0 ? (elapsed / total) * 100 : 0;
             
@@ -380,6 +381,3 @@
     }
     
 })();
-
-// 🌐 Lógica do Banner de Localização (Apple-style) - Mantida no HTML para uso imediato do DOM e script síncrono.
-// Se desejado, esta lógica também pode ser movida para este arquivo.
