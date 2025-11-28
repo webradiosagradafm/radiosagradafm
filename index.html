@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#ff4d00">
     <link rel="icon" type="image/png" sizes="32x32" href="/image/favicon-32x32.png">
     <style>
-        /* ... Seu CSS completo continua aqui ... */
         :root { --orange:#ff4d00; --dark:#111; --grey:#555; --light-grey:#888; --bg:#fff; --border-color:#ddd; }
         * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif; }
         body { background:var(--bg); color:#000; min-height:100vh; padding-bottom:120px; display:flex; flex-direction:column; align-items:center; }
@@ -117,6 +116,7 @@
 </head>
 <body>
 
+<!-- 🌐 BANNER MULTILÍNGUE (Apple-style) -->
 <div id="praisefm-locale-bar" style="display:none;">
     <div class="pfm-message">Your region has a Praise FM version.</div>
     <div class="pfm-locale-select" id="pfm-locale-select">
@@ -188,6 +188,8 @@
   });
 })();
 </script>
+<!-- 🔼 FIM DO BANNER -->
+
 <div class="container">
     <h1 class="station-title">Praise FM</h1>
     <p class="station-subtitle">Praise & Worship</p>
@@ -227,6 +229,7 @@
         <div id="recentList"></div>
     </div>
 </div>
+
 <div class="mini-player" id="miniPlayer">
     <div class="mini-player-content">
         <img id="miniImg" src="/image/logopraisefm.webp" class="mini-cover">
@@ -264,10 +267,17 @@
         </div>
     </div>
 </div>
+
+<!-- ToucanPlayer.js – Versão final e corrigida -->
 <script>
+(function() {
+    // 1. CONSTANTES E CONFIGURAÇÕES
     const STREAM_URL = "https://stream.zeno.fm/hvwifp8ezc6tv";
     const audio = new Audio(STREAM_URL);
     audio.volume = 0.8;
+   
+    // Configuração de fuso horário: America/Chicago
+    const TIME_ZONE = "America/Chicago";
     const images = {
         default: "/image/logopraisefm.webp",
         midnight: "/image/midnightgracelogo.webp",
@@ -290,6 +300,7 @@
         "Praise FM Non Stop": "Praise FM",
         "Praise FM Worship": "Praise FM"
     };
+    // Estrutura de agendamento (Schedule)
     const schedule = [
         {start:"00:00", end:"06:00", name:"Midnight Grace", img:images.midnight, desc: "Daniel Brooks lays down the most soothing overnight praise vibes."},
         {start:"06:00", end:"07:00", name:"Praise FM Worship", img:images.worship, desc: "Praise FM plays the finest worship music."},
@@ -304,5 +315,242 @@
         {start:"20:30", end:"21:30", name:"Praise FM Non Stop", img:images.nonstop, days:[1,2,3,4,5,6], desc: "Praise FM with non-stop praise hits."},
         {start:"21:30", end:"00:00", name:"Praise FM Worship", img:images.worship, desc: "Praise FM plays the finest worship music."}
     ];
-    function getTime() { return new Date(new Date().toLocaleString("en-US",{timeZone:"America/Chicago"})); }
-    function timeToMins(t
+    let currentTrack = {title:"", artist:"", duration:0, startTime:0};
+    const recents = [];
+    let trackTimer = null;
+    // 2. FUNÇÕES DE UTILIDADE DE TEMPO E FORMATO
+    function getTime() {
+        return new Date(new Date().toLocaleString("en-US", {timeZone: TIME_ZONE}));
+    }
+    function timeToMins(t) {
+        const [h,m] = t.split(":").map(Number);
+        return h * 60 + m;
+    }
+    function formatTime(seconds) {
+        const min = Math.floor(seconds / 60);
+        const sec = Math.floor(seconds % 60);
+        return `${min}:${sec.toString().padStart(2, '0')}`;
+    }
+    function formatProgramName(p) {
+        if (!p) return "Praise FM";
+        const base = p.name.replace(/ \([^)]*\)$/, '').trim();
+        if (["Praise FM Non Stop", "Praise FM POP", "Praise FM Magazine", "Praise FM Worship"].includes(base)) {
+            return base;
+        }
+        const host = hosts[base] || "Praise FM";
+        return `${base} With ${host}`;
+    }
+    function formatRange(p) {
+        const [sh, sm] = p.start.split(":").map(Number);
+        const [eh, em] = p.end.split(":").map(Number);
+        const sSuffix = sh >= 12 ? "PM" : "AM";
+        const eSuffix = eh >= 12 ? "PM" : "AM";
+        const sHour = ((sh + 11) % 12) + 1;
+        const eHour = ((eh + 11) % 12) + 1;
+        return `${sHour}:${sm.toString().padStart(2, '0')} ${sSuffix} - ${eHour}:${em.toString().padStart(2, '0')} ${eSuffix}`;
+    }
+    // 3. LÓGICA DE AGENDAMENTO
+    function getCurrentAndNext() {
+        const now = getTime();
+        const day = now.getDay();
+        const mins = timeToMins(now.toTimeString().slice(0,5));
+        let current = null;
+        const future = [];
+        for (const p of schedule) {
+            if (p.days && !p.days.includes(day)) continue;
+            const s = timeToMins(p.start);
+            const e = timeToMins(p.end);
+            const end = e <= s ? e + 1440 : e;
+           
+            if (mins >= s && mins < end) {
+                if (!current || end > (current.endAdjusted || 0)) {
+                    current = p;
+                    current.endAdjusted = end;
+                }
+            }
+           
+            if (mins < s || e <= s) { // inclui programas que cruzam meia-noite no futuro
+                future.push({prog:p, startMins: e <= s && mins >= s ? timeToMins(p.start) + 1440 : s});
+            }
+        }
+        if (future.length === 0) {
+            const tomorrow = (day + 1) % 7;
+            for (const p of schedule) {
+                if (!p.days || p.days.includes(tomorrow)) future.push({prog:p, startMins:timeToMins(p.start) + 1440});
+            }
+        }
+        future.sort((a,b) => a.startMins - b.startMins);
+       
+        return {
+            current: current || {name:"Praise FM", img:images.default, start:"00:00", end:"00:00"},
+            next1: future[0]?.prog || schedule[0],
+            next2: future[1]?.prog || schedule[1]
+        };
+    }
+    // 4. METADADOS E REPRODUÇÃO RECENTE
+    function updateProgramProgress() {
+        const {current} = getCurrentAndNext();
+        const now = getTime();
+        const miniTrackFill = document.getElementById("miniTrackFill");
+        const miniTrackCurrent = document.getElementById("miniTrackCurrent");
+        const miniTrackDuration = document.getElementById("miniTrackDuration");
+        const progressRing = document.getElementById("progressRing");
+        if (current.start && current.end) {
+            let s = timeToMins(current.start);
+            let e = timeToMins(current.end);
+            const n = timeToMins(now.toTimeString().slice(0,5));
+            if (e <= s) e += 1440;
+            if (n < s) n += 1440; // caso esteja no programa que começou ontem
+            const total = e - s;
+            const elapsed = n - s;
+            const pct = total > 0 ? (elapsed / total) * 100 : 0;
+           
+            if(miniTrackFill) miniTrackFill.style.width = `${pct}%`;
+            if(miniTrackCurrent) miniTrackCurrent.textContent = formatTime(elapsed * 60);
+            if(miniTrackDuration) miniTrackDuration.textContent = formatTime(total * 60);
+            if (progressRing) progressRing.style.background = `conic-gradient(var(--orange) ${pct}%, transparent ${pct}%)`;
+        } else {
+            if(miniTrackFill) miniTrackFill.style.width = "0%";
+            if(miniTrackCurrent) miniTrackCurrent.textContent = "--:--";
+            if(miniTrackDuration) miniTrackDuration.textContent = "Live";
+            if (progressRing) progressRing.style.background = "conic-gradient(var(--orange) 0%, transparent 0%)";
+        }
+    }
+    async function fetchAlbumCover(artist, title) {
+        if (!artist || !title) return images.default;
+        const query = encodeURIComponent(`${artist} ${title}`);
+        const url = `https://itunes.apple.com/search?term=${query}&entity=song&limit=1`;
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.results?.[0]?.artworkUrl100) {
+                return data.results[0].artworkUrl100.replace('100x100', '600x600');
+            }
+        } catch (e) {}
+        return images.default;
+    }
+    async function processMetadata(artist, title) {
+        if (trackTimer) clearInterval(trackTimer);
+       
+        const isAd = title.toLowerCase().includes("commercial") || title.toLowerCase().includes("ad");
+       
+        if (isAd) {
+            currentTrack = {title:"", artist:"", duration:0, startTime:0};
+        } else {
+            currentTrack = {title, artist, duration:0, startTime:Date.now()};
+            const cover = await fetchAlbumCover(artist, title);
+            const key = `${artist}-${title}`;
+            if (!recents.some(t => t.key === key)) {
+                recents.unshift({title, artist, cover, key});
+                if (recents.length > 4) recents.pop();
+                const recentList = document.getElementById("recentList");
+                if (recentList) {
+                     recentList.innerHTML = recents.map(t => `
+                        <div class="recent-item">
+                            <img src="${t.cover}" class="recent-cover" onerror="this.src='${images.default}'">
+                            <div>
+                                <div class="recent-title">${t.title}</div>
+                                <div class="recent-artist">${t.artist}</div>
+                            </div>
+                        </div>
+                    `).join("");
+                }
+            }
+        }
+       
+        updateDisplay();
+        trackTimer = setInterval(updateProgramProgress, 1000);
+    }
+    // 5. ATUALIZAÇÃO DA UI
+    function updateDisplay() {
+        const {current, next1, next2} = getCurrentAndNext();
+        document.getElementById("mainImg").src = current.img || images.default;
+        document.getElementById("miniImg").src = current.img || images.default;
+        document.getElementById("upnextImg1").src = next1.img || images.default;
+        document.getElementById("upnextImg2").src = next2.img || images.default;
+       
+        const displayName = formatProgramName(current);
+        document.getElementById("programTitle").textContent = displayName;
+       
+        document.getElementById("miniTitle").textContent = currentTrack.title ? currentTrack.title : displayName;
+        document.getElementById("miniArtist").textContent = currentTrack.artist ? currentTrack.artist : "Praise & Worship";
+       
+        document.getElementById("upnextTime1").textContent = "UP NEXT: " + formatRange(next1);
+        document.getElementById("upnextTitle1").textContent = formatProgramName(next1);
+        document.getElementById("upnextDesc1").textContent = next1.desc || "-";
+       
+        document.getElementById("upnextTime2").textContent = formatRange(next2);
+        document.getElementById("upnextTitle2").textContent = formatProgramName(next2);
+        document.getElementById("upnextDesc2").textContent = next2.desc || "-";
+       
+        updateProgramProgress();
+    }
+    // 6. CONTROLES
+    function togglePlay() {
+        if (audio.paused) {
+            audio.play();
+            document.getElementById("miniPlayer").classList.add("show");
+        } else audio.pause();
+        const playing = !audio.paused;
+        const playSvg = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+        const pauseSvg = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+        document.getElementById("bigPlay").innerHTML = playing ? pauseSvg + ' Pause' : playSvg + ' Play';
+        document.getElementById("miniPlayPause").innerHTML = playing ? pauseSvg : playSvg;
+    }
+    function updateVolumeDisplay() {
+        document.getElementById("miniVolumeFill").style.width = (audio.volume * 100) + '%';
+        const muteSvg = '<svg viewBox="0 0 24 24"><path d="M16.5 12l4.5 4.5-1.5 1.5L15 13.5 11.5 17H7v-6h4.5L15 7.5l4.5-4.5 1.5 1.5L16.5 12z"/></svg>';
+        const volumeSvg = '<svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>';
+        document.getElementById("miniVolumeIcon").innerHTML = audio.muted ? muteSvg : volumeSvg;
+    }
+    // 7. INICIALIZAÇÃO
+    function setupEventListeners() {
+        document.getElementById("bigPlay").onclick = togglePlay;
+        document.getElementById("miniPlayPause").onclick = togglePlay;
+        document.getElementById("miniRewind").onclick = () => audio.currentTime = Math.max(0, audio.currentTime - 15);
+        document.getElementById("miniForward").onclick = () => audio.currentTime += 15;
+       
+        document.getElementById("miniVolumeBar").onclick = e => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            audio.volume = Math.max(0, Math.min(1, percent));
+            audio.muted = false;
+            updateVolumeDisplay();
+        };
+       
+        document.getElementById("miniVolumeIcon").onclick = () => {
+            audio.muted = !audio.muted;
+            updateVolumeDisplay();
+        };
+        updateVolumeDisplay();
+    }
+    function setupMetadataListener() {
+        try {
+            const es = new EventSource("https://api.zeno.fm/mounts/metadata/subscribe/hvwifp8ezc6tv");
+            es.onmessage = e => {
+                try {
+                    const d = JSON.parse(e.data);
+                    if (d.streamTitle) {
+                        const parts = d.streamTitle.split(" - ");
+                        processMetadata(parts[0]||"", parts.slice(1).join(" - ")||"");
+                    }
+                } catch (err) {}
+            };
+        } catch(e) {}
+    }
+    function init() {
+        setupEventListeners();
+        setupMetadataListener();
+        updateDisplay();
+        setInterval(updateDisplay, 8000);
+    }
+   
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+</body>
+</html>
